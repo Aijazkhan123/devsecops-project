@@ -9,19 +9,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ✅ Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # ✅ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
+      # ✅ Install dependencies (path fixed)
       - name: Install dependencies
-        run: npm install --prefix app
+        run: npm install --prefix ./app
 
+      # ✅ Run tests (path fixed)
       - name: Run tests
-        run: npm test --prefix app
+        run: npm test --prefix ./app
 
   build:
     runs-on: ubuntu-latest
@@ -38,10 +42,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 🐳 Build Image
+      # 🐳 Build Docker image (path fixed)
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }} app
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }} ./app
           docker tag ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/devsecops-app:latest
 
       # 🔐 Trivy Scan
@@ -50,7 +54,7 @@ jobs:
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }}
 
-      # 📦 Push Image
+      # 📦 Push Docker image
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }}
@@ -58,10 +62,12 @@ jobs:
 
       # 🔍 SonarQube Scan
       - name: SonarQube Scan
-        run: sonar-scanner -Dproject.settings=app/sonar-project.properties
-        env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          npm install -g sonar-scanner
+          sonar-scanner \
+            -Dproject.settings=app/sonar-project.properties \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   deploy:
     runs-on: ubuntu-latest
