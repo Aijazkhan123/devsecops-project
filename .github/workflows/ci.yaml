@@ -47,7 +47,7 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/devsecops-app:latest
 
       - name: Trivy scan
-        uses: aquasecurity/trivy-action@0.28.0   # ✅ updated to stable version
+        uses: aquasecurity/trivy-action@v0.19.0  # ✅ updated to stable version
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/devsecops-app:${{ github.sha }}
 
